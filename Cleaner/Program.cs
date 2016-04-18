@@ -28,6 +28,11 @@ namespace Cleaner
             _destinationDir = ini.GetValue("CONFIG", "DESTINATION", "");
             _duration = int.Parse(ini.GetValue("CONFIG", "DURATION", "5"));
 
+            Console.WriteLine("Load {0}", CONFIG_PATH);
+            Console.WriteLine("TARGET {0}", _targetDir);
+            Console.WriteLine("DESTINATION {0}", _destinationDir);
+            Console.WriteLine("DURATION {0}", _duration);
+
             // 설정파일이 올바르지 않다면,
             if (_targetDir.Length == 0 || _destinationDir.Length == 0 )
             {
@@ -40,12 +45,12 @@ namespace Cleaner
                 ini.SetValue("CONFIG", "DESTINATION", "[DESTINATION DIR]");
                 ini.SetValue("CONFIG", "DURATION", "5");
 
-                return;
+                return; // 프로그램 종료
             }
 
             List <System.IO.FileInfo> files = new List<System.IO.FileInfo>();
             DateTime date = DateTime.Now.Date;
-            date = date.AddDays(-1 * _duration);
+            date = date.AddDays(_duration * -1);
 
             // 파일 찾기 
             System.IO.DirectoryInfo dir = new System.IO.DirectoryInfo(_targetDir);
@@ -55,21 +60,29 @@ namespace Cleaner
                     files.Add(file);
             }
 
+            Console.WriteLine("Count files; {0}", files.Count);
+
             // 리스트 검사
             if (files.Count == 0)
+            {
+                Console.WriteLine("No File");
                 return;
-
+            }
 
             // 파일 복사 
             foreach (System.IO.FileInfo file in files)
             {
                 string path = _destinationDir + "\\" + file.LastWriteTime.Date.ToString("yyyy-MM-dd") + "\\";
-
+                
                 System.IO.DirectoryInfo di = new System.IO.DirectoryInfo(path);
 
                 if (di.Exists == false)
+                {
+                    Console.WriteLine("Create directory; {0}", path);
                     di.Create();
+                }
 
+                Console.WriteLine("Copy to; {0}", path + file.Name);
                 file.CopyTo(path + file.Name, true);
             }
 
@@ -77,6 +90,7 @@ namespace Cleaner
             // 파일 삭제
             foreach (System.IO.FileInfo file in files)
             {
+                Console.WriteLine("Delete; {0}", file.Name);
                 file.Delete();
             }
 
